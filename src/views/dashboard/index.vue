@@ -1,22 +1,77 @@
 <template>
   <div class="dashboard-container">
-    <!-- <div class="dashboard-text">name: {{ name }}</div> -->
-    <span>主题：</span>
-    <el-color-picker
-      v-model="theme"
-      :predefine="['#409EFF', '#1890ff', '#304156','#212121','#11a983', '#13c2c2', '#6959CD', '#f5222d', ]"
-      class="theme-picker"
-    />
+    <h2><i class="el-icon-office-building" style="margin-right: 10px" />基础介绍</h2>
+    <p :style="colorObj">
+      <b>由于更换主题需要外网资源支持，本展示功能仅在外网环境预览</b>
+    </p>
 
-    <el-radio v-model="radio" label="1">备选项</el-radio>
-    <el-radio v-model="radio" label="2">备选项</el-radio>
-    <span>{{ defaultTheme }}</span>
+    <div class="dashboard-item">
+      <span class="dashboard-item-label">主题：</span>
+      <el-color-picker
+        v-model="theme"
+        :predefine="['#409EFF', '#1890ff', '#304156','#212121','#11a983', '#13c2c2', '#6959CD', '#f5222d', ]"
+        size="small"
+        class="dashboard-item-label"
+      />
+      <span :style="colorObj" class="dashboard-item-label">当前值:{{ defaultTheme }}</span>
+    </div>
+
+    <div class="dashboard-item">
+      <span class="dashboard-item-label">内网变换主题(换肤)：</span>
+      <div class="dashboard-item-label dashboard-item-special-label">
+        <el-input
+          v-model="textsObj.themeText"
+          type="textarea"
+          :readonly="true"
+          :rows="2"
+        />
+      </div>
+      <p>相关链接：<a href="https://segmentfault.com/a/1190000009762198#articleHeader2" target="_blank" style="text-decoration:underline">手摸手，带你用vue撸后台 系列三(实战篇）</a></p>
+    </div>
+
+    <div class="dashboard-item">
+      <span class="dashboard-item-label">gulp相关代码：</span>
+      <pre class="dashboard-item-label">
+        <code>
+          var path = require('path')
+          var gulp = require('gulp')
+          var cleanCSS = require('gulp-clean-css');
+          var cssWrap = require('gulp-css-wrap');
+          var customThemeName='.custom-theme'
+          gulp.task('css-wrap', function() {
+            return gulp.src( path.resolve('./theme/index.css'))
+              .pipe(cssWrap({selector:customThemeName}))
+              .pipe(cleanCSS())
+              .pipe(gulp.dest('dist'));
+          });
+          gulp.task('move-font', function() {
+            return gulp.src(['./theme/fonts/**']).pipe(gulp.dest('dist/fonts'));
+          });
+          gulp.task('default',['css-wrap','move-font']);
+        </code>
+      </pre>
+    </div>
+
+    <div class="dashboard-item">
+      <p>当前主题各类颜色：</p>
+      <el-row>
+        <el-col v-for="item in colors" :key="item.key" :span="3" style="padding: 0 4px">
+          <div class="dashboard-item-box" :style="{background: item.value}">
+            <span class="dashboard-item-box-label">{{ item.key }}</span>
+            <span class="dashboard-item-box-label">{{ item.value }}</span>
+          </div>
+        </el-col>
+      </el-row>
+    </div>
   </div>
 </template>
 
 <script>
 const version = require('element-ui/package.json').version // element-ui version from node_modules
 const ORIGINAL_THEME = '#409EFF' // default color, can't change
+import variables from '@/styles/element-variables.scss'
+import textObj from '@/textConfig'
+import { color } from '@/utils/index'
 
 import { mapState } from 'vuex'
 
@@ -26,14 +81,22 @@ export default {
     return {
       chalk: '', // content of theme-chalk css
       theme: '',
-      radio: '1'
+      colors: []
     }
   },
   computed: {
     ...mapState({
       defaultTheme: state => state.settings.theme,
       name: state => state.user.name
-    })
+    }),
+    colorObj() {
+      return {
+        color: this.defaultTheme
+      }
+    },
+    textsObj() {
+      return textObj
+    }
   },
   watch: {
     defaultTheme: {
@@ -48,12 +111,6 @@ export default {
       const themeCluster = this.getThemeCluster(val.replace('#', ''))
       const originalCluster = this.getThemeCluster(oldVal.replace('#', ''))
       console.log(themeCluster, originalCluster)
-      const $message = this.$message({
-        message: '  Compiling the theme',
-        type: 'success',
-        duration: 0,
-        iconClass: 'el-icon-loading'
-      })
       const getHandler = (variable, id) => {
         return () => {
           const originalCluster = this.getThemeCluster(ORIGINAL_THEME.replace('#', ''))
@@ -87,8 +144,11 @@ export default {
         key: 'theme',
         value: val
       })
-      $message.close()
     }
+  },
+  mounted() {
+    this.colors = color(variables)
+    console.log('variables', color(variables))
   },
   methods: {
     updateStyle(style, oldCluster, newCluster) {
@@ -154,15 +214,32 @@ export default {
 <style lang="scss" scoped>
 .dashboard {
   &-container {
-    margin: 30px;
+    margin: 30px
   }
-  &-text {
-    font-size: 30px;
-    line-height: 46px;
+  &-item {
+    width: 100%;
+    margin-bottom: 20px
+  }
+  &-item-label {
+    display: inline-block;
+    margin-right: 10px;
+    vertical-align: middle;
+  }
+  &-item-special-label {
+    width: calc(100% - 180px)
   }
 
-  .theme-picker {
-    height: 26px;
+  &-item-box {
+    box-sizing: border-box;
+    border-radius: 4px;
+    padding: 20px;
+    height: 80px;
+    font-size: 14px;
+    color: white
+  }
+  &-item-box-label {
+    display: block;
+    text-align: center;
   }
 }
 </style>

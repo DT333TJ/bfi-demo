@@ -105,3 +105,26 @@ export function param2Obj(url) {
       '"}'
   )
 }
+
+/**
+ * 处理主题色方法
+ * @export
+ * @param {*} colorParam
+ * @returns
+ */
+export function color(colorParam) {
+  var colors = []
+  try {
+    for (var key of Object.keys(colorParam)) {
+      if (key !== 'theme') {
+        colors.push({
+          key: key,
+          value: colorParam[key]
+        })
+      }
+    }
+  } catch (error) {
+    console.log(error)
+  }
+  return colors
+}
