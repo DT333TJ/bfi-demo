@@ -53,7 +53,7 @@ export const constantRoutes = [
 
 const createRouter = () => new Router({
   mode: 'history', // require service support
-  base: '/tkbfi/bfi',
+  base: '/bfi-demo',
   scrollBehavior: () => ({ y: 0 }),
   routes: constantRoutes
 })
